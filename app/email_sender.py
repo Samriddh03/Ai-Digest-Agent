@@ -1,21 +1,17 @@
-import smtplib
 import os
-from email.mime.text import MIMEText
-from dotenv import load_dotenv
-
-load_dotenv()
-
-SENDER = os.getenv("EMAIL_SENDER")
-PASSWORD = os.getenv("EMAIL_PASSWORD")
-RECEIVER = os.getenv("EMAIL_RECEIVER")
-
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 def send_email(content):
-    msg = MIMEText(content, "plain")
-    msg["Subject"] = "🚀 Daily AI Digest"
-    msg["From"] = SENDER
-    msg["To"] = RECEIVER
+    message = Mail(
+        from_email=os.getenv("EMAIL_SENDER"),
+        to_emails=os.getenv("EMAIL_RECEIVER"),
+        subject="🚀 Daily AI Digest",
+        plain_text_content=content
+    )
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(SENDER, PASSWORD)
-        server.send_message(msg)
+    try:
+        sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+        sg.send(message)
+    except Exception as e:
+        print("Email error:", e)
